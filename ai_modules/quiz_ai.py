@@ -3,16 +3,15 @@ from openai import OpenAI
 from typing import List, Dict, Any
 import streamlit as st
 
-
-
 class AIQuizExplainer:
-    """AI题目解析器 - 活泼生动风格（已适配本地 DeepSeek）"""
+    """AI题目解析器 - 活泼生动风格（已适配 DeepSeek 官方 API）"""
 
     def __init__(self, api_key: str = None):
-        # 这里的名字要和 Secrets 里的 DEEPSEEK_API_KEY 一致
-        final_api_key = os.getenv("DEEPSEEK_API_KEY") or api_key or "sk-fae59c4e0bc9488999e6449881f23a6c"
+        # 1. 严格从 Secrets 获取，删掉 hardcode 的 sk-xxx
+        final_api_key = os.getenv("DEEPSEEK_API_KEY") or api_key
         final_base_url = os.getenv("DEEPSEEK_BASE_URL") or "https://api.deepseek.com"
 
+        # 2. 初始化客户端
         self.client = OpenAI(
             base_url=final_base_url,
             api_key=final_api_key,
@@ -21,6 +20,10 @@ class AIQuizExplainer:
     def explain_answer(self, question: str, user_answer: str, correct_answer: str,
                        context: str = "", is_correct: bool = False) -> str:
         """生成生动活泼的题目解析"""
+
+        # 检查 Key 是否读取成功，防止静默失败
+        if not self.client.api_key:
+            return self._fallback_explanation(question, user_answer, correct_answer, is_correct)
 
         if is_correct:
             prompt = f"""
@@ -53,9 +56,8 @@ class AIQuizExplainer:
             """
 
         try:
-            # 核心改动：调用本地 ds-7b 模型
             response = self.client.chat.completions.create(
-               model="deepseek-chat",
+                model="deepseek-chat",
                 messages=[
                     {"role": "system", "content": "你是一个活泼有趣的小学老师，专门讲解红色文化故事。"},
                     {"role": "user", "content": prompt}
@@ -65,13 +67,13 @@ class AIQuizExplainer:
             )
             return response.choices[0].message.content
         except Exception as e:
-            # 调试用：如果报错可以在控制台看到
-            print(f"Quiz AI Error: {e}")
+            # 这里的报错会直接显示在 Streamlit 网页上，方便你排查是不是余额不足（402）
+            st.error(f"小红星解析模块出错啦：{e}")
             return self._fallback_explanation(question, user_answer, correct_answer, is_correct)
 
     def _fallback_explanation(self, question: str, user_answer: str,
                               correct_answer: str, is_correct: bool) -> str:
-        """备用解析（当 API 离线时使用）"""
+        """备用解析（当 API 报错或余额不足时使用）"""
         if is_correct:
             return f"🎉 太棒啦！{user_answer} 是完全正确的！你对陈毅爷爷的故事了解得真清楚，真是一个红色文化小达人！👍"
         else:
