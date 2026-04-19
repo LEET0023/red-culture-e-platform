@@ -1,0 +1,24 @@
+{
+  "e0220152": {
+    "badges": [
+      "persistence_king",
+      "first_correct"
+    ],
+    "stats": {
+      "correct_answers": 3,
+      "total_answers": 5,
+      "current_streak": 2,
+      "max_streak": 2,
+      "quality_questions": 0,
+      "total_questions_asked": 0,
+      "vocabulary_learned": [],
+      "sections_completed": [
+        "走进陈毅旧居——一座夯土房里的革命史 / Entering Chen Yi’s Former Residence — A Revolutionary Story in a Rammed-Earth House",
+        "百年丹桂见证鱼水情深 / A Century-Old Osmanthus Tree Witnessing the Bond Between Soldiers and Civilians",
+        "革命文物展示 / Display of Revolutionary Cultural Relics"
+      ],
+      "mistake_recovery_count": 2
+    },
+    "last_mistake_question": null
+  }
+}

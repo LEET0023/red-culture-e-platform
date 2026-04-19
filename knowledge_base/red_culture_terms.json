@@ -1,0 +1,153 @@
+{
+  "terms": [
+    {
+      "term": "Yimeng Spirit",
+      "chinese": "沂蒙精神",
+      "definition_en": "The revolutionary spirit of Yimeng people who supported the Communist Party and sacrificed for the liberation.",
+      "definition_zh": "沂蒙人民支持党、为解放事业牺牲奉献的革命精神",
+      "kids_explanation": "就像邻居互相帮助一样，沂蒙人民和解放军战士像一家人！他们用小车推着粮食送往前线，用自己的棉衣给伤员保暖。",
+      "keywords": ["Yimeng", "spirit", "revolution", "support", "people"],
+      "grade_level": "primary"
+    },
+    {
+      "term": "Rammed-earth house",
+      "chinese": "夯土房",
+      "definition_en": "A house built by pounding earth between wooden frames.",
+      "definition_zh": "用木板夹住泥土，一层层夯打结实的房子",
+      "kids_explanation": "就像玩泥巴时把泥土压紧压平，这样房子就会很结实！以前的劳动人民就是这样建造房子的。",
+      "keywords": ["house", "earth", "build", "traditional", "mud"],
+      "grade_level": "primary"
+    },
+    {
+      "term": "Osmanthus tree",
+      "chinese": "桂花树",
+      "definition_en": "A fragrant tree that blooms small golden flowers in autumn.",
+      "definition_zh": "秋天会开出金色小花，香气扑鼻的树",
+      "kids_explanation": "秋天的时候，这棵树会开出香喷喷的小花，整个院子都是香香的！桂花还可以做成甜甜的桂花糕呢。",
+      "keywords": ["tree", "fragrant", "flower", "yard", "autumn"],
+      "grade_level": "primary"
+    },
+    {
+      "term": "Marshal",
+      "chinese": "元帅",
+      "definition_en": "The highest military rank, given to great war heroes.",
+      "definition_zh": "最高的军衔，授予伟大的战争英雄",
+      "kids_explanation": "就像班级里的班长，但元帅是军队里最厉害的指挥官！陈毅爷爷就是十大元帅之一，超级厉害！",
+      "keywords": ["military", "rank", "hero", "commander", "army"],
+      "grade_level": "primary"
+    },
+    {
+      "term": "Revolutionary Cultural Relic",
+      "chinese": "革命文物",
+      "definition_en": "Objects from the revolutionary period that help us remember history.",
+      "definition_zh": "革命时期的物品，帮助我们记住历史",
+      "kids_explanation": "就像你小时候的玩具能让你想起童年，这些老物件藏着很多革命故事！牛皮床就是一件珍贵的革命文物。",
+      "keywords": ["relic", "history", "memory", "object", "cultural"],
+      "grade_level": "primary"
+    },
+    {
+      "term": "Guerrilla war",
+      "chinese": "游击战",
+      "definition_en": "A type of fighting where small groups use surprise attacks.",
+      "definition_zh": "小股部队使用突袭方式进行的战斗",
+      "kids_explanation": "就像捉迷藏时突然跳出来吓朋友一跳！游击队员会藏在山里，突然出现打击敌人，然后快速消失。",
+      "keywords": ["fight", "surprise", "attack", "war", "soldier"],
+      "grade_level": "primary"
+    },
+    {
+      "term": "Former Residence",
+      "chinese": "旧居",
+      "definition_en": "A house where someone important used to live.",
+      "definition_zh": "重要人物曾经居住过的房子",
+      "kids_explanation": "就是名人以前住过的房子！就像陈毅爷爷以前住过的这个夯土房，现在成了纪念馆。",
+      "keywords": ["house", "live", "history", "memorial", "home"],
+      "grade_level": "primary"
+    },
+    {
+      "term": "Soldier-civilian bond",
+      "chinese": "鱼水情深",
+      "definition_en": "The deep and close relationship between soldiers and common people.",
+      "definition_zh": "军队和老百姓之间深厚亲密的关系",
+      "kids_explanation": "就像鱼和水不能分开一样，解放军战士和老百姓也像一家人！战士们帮老百姓干活，老百姓给战士们送吃的。",
+      "keywords": ["soldier", "people", "relationship", "friendship", "help"],
+      "grade_level": "primary"
+    },
+    {
+      "term": "East China Field Army",
+      "chinese": "华东野战军",
+      "definition_en": "A major military force of the People's Liberation Army during the Civil War.",
+      "definition_zh": "解放战争时期人民解放军的主力部队之一",
+      "kids_explanation": "这是一支非常厉害的军队，陈毅爷爷就是他们的指挥官！他们打了很多胜仗，保护了老百姓。",
+      "keywords": ["army", "military", "war", "commander", "China"],
+      "grade_level": "primary"
+    },
+    {
+      "term": "New Fourth Army",
+      "chinese": "新四军",
+      "definition_en": "A unit of the National Revolutionary Army led by the Communist Party during the Anti-Japanese War.",
+      "definition_zh": "抗日战争时期共产党领导的国民革命军部队",
+      "kids_explanation": "这是抗日战争时期的一支英雄军队，他们和日本侵略者勇敢战斗，保护了我们的国家！",
+      "keywords": ["army", "war", "Japanese", "fight", "hero"],
+      "grade_level": "primary"
+    }
+  ],
+  "historical_facts": [
+    {
+      "fact": "Chen Yi lived in Qian Hewan from June 1946 to February 1947.",
+      "chinese": "陈毅于1946年6月至1947年2月居住在前河湾。",
+      "kids_friendly": "🌟 陈毅爷爷在这个老房子里住了整整8个月，差不多是一个学年那么长！这段时间他指挥了很多重要的战斗。"
+    },
+    {
+      "fact": "The oxhide bed is now a National Grade III Revolutionary Cultural Relic.",
+      "chinese": "牛皮床现为国家三级革命文物。",
+      "kids_friendly": "🛏️ 这张特别的牛皮床被国家认证为'三级革命文物'，就像博物馆里的宝贝一样，因为它见证了那段艰苦但光荣的历史！"
+    },
+    {
+      "fact": "Chen Yi was awarded the rank of Marshal in 1955.",
+      "chinese": "1955年，陈毅被授予元帅军衔。",
+      "kids_friendly": "🎖️ 1955年，陈毅爷爷被授予'元帅'军衔，这是军队里最高的荣誉之一！全中国只有10位元帅，陈爷爷就是其中之一。"
+    },
+    {
+      "fact": "The osmanthus tree in the yard is over 100 years old.",
+      "chinese": "院子里的桂花树已经有一百多年历史了。",
+      "kids_friendly": "🌳 你知道吗？院子里的桂花树已经100多岁啦！它比你的爷爷奶奶年纪还要大，每年秋天都会开出香喷喷的花。"
+    },
+    {
+      "fact": "Chen Yi had four children: Chen Haosu, Chen Danhuai, Chen Xiaolu, and Chen Shanshan.",
+      "chinese": "陈毅有四个孩子：陈昊苏、陈丹淮、陈小鲁和陈姗姗。",
+      "kids_friendly": "👨‍👩‍👧‍👦 陈毅爷爷有四个孩子，就像有的同学家里有兄弟姐妹一样。最小的女儿叫陈姗姗，她小时候就住在这个老房子里！"
+    },
+    {
+      "fact": "Chen Haosu wrote a poem when he revisited Yimeng in 1990.",
+      "chinese": "1990年，陈昊苏回访沂蒙时写了一首诗。",
+      "kids_friendly": "📝 1990年，陈毅爷爷的儿子陈昊苏回到沂蒙看望老朋友，他太感动了，就写了一首诗来表达对沂蒙人民的感谢和思念。"
+    },
+    {
+      "fact": "The rammed-earth house was built in 1927 by Zhong Weikun.",
+      "chinese": "这座夯土房是由钟维坤于1927年建造的。",
+      "kids_friendly": "🏠 这座老房子是1927年由一位叫钟维坤的爷爷建造的，那时候你的爷爷奶奶可能还没出生呢！"
+    },
+    {
+      "fact": "Chen Yi led guerrilla war in the south for three years during the Land Revolution period.",
+      "chinese": "土地革命时期，陈毅领导了南方三年游击战争。",
+      "kids_friendly": "⚔️ 在非常艰苦的三年里，陈毅爷爷带领战士们在南方的山林里和敌人战斗，就像电影里的英雄一样勇敢！"
+    }
+  ],
+  "kids_questions": [
+    {
+      "question": "为什么陈毅要把桂花树从花盆里移到地上？",
+      "answer": "因为陈毅爷爷觉得树在花盆里长不大，只有种在地上才能茁壮成长！就像小朋友要多运动、多吃饭才能长高一样~",
+      "keywords": ["桂花树", "陈毅", "花盆", "地上"]
+    },
+    {
+      "question": "什么是'鱼水情深'？",
+      "answer": "鱼水情深就是说解放军战士和老百姓就像鱼和水一样，谁也离不开谁！战士们保护老百姓，老百姓也像家人一样照顾战士们。",
+      "keywords": ["鱼水情深", "军民", "关系"]
+    },
+    {
+      "question": "为什么陈毅旧居这么重要？",
+      "answer": "因为陈毅爷爷在这里住了8个月，指挥了很多重要战斗。而且这座老房子保存得很好，让我们可以亲眼看到革命先辈当年生活的地方！",
+      "keywords": ["旧居", "重要", "陈毅"]
+    }
+  ]
+}
