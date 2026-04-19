@@ -15,7 +15,7 @@ except ImportError:
 class AIQASystem:
     """AI智能问答系统 - 已适配本地 DeepSeek (Ollama)"""
 
-def __init__(self, api_key: str = None):
+    def __init__(self, api_key: str = None):
         # 1. 优先从环境变量获取（Streamlit Secrets 会自动注入环境变量）
         # 如果没有环境变量，则使用传入的参数或默认值
         final_api_key = os.getenv("DEEPSEEK_API_KEY") or api_key or "sk-xxx"
