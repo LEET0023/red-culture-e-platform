@@ -1,5 +1,6 @@
 streamlit
 pandas
+openai
 chromadb==0.4.24
 protobuf==4.25.3
 opentelemetry-api==1.22.0
