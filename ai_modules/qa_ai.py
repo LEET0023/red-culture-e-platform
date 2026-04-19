@@ -15,11 +15,15 @@ except ImportError:
 class AIQASystem:
     """AI智能问答系统 - 已适配本地 DeepSeek (Ollama)"""
 
-    def __init__(self, api_key: str = None):
-        # 核心改动：指向你昨天开启的本地 Ollama 服务器
+def __init__(self, api_key: str = None):
+        # 1. 优先从环境变量获取（Streamlit Secrets 会自动注入环境变量）
+        # 如果没有环境变量，则使用传入的参数或默认值
+        final_api_key = os.getenv("DEEPSEEK_API_KEY") or api_key or "sk-xxx"
+        final_base_url = os.getenv("DEEPSEEK_BASE_URL") or "https://api.deepseek.com"
+
         self.client = OpenAI(
-            base_url='http://localhost:11434/v1/',
-            api_key='ollama',  # 本地调用随便填，但不能为空
+            base_url=final_base_url,
+            api_key=final_api_key,
         )
         self.rag = RedCultureRAG()
         self.conversation_history: List[Dict] = []
@@ -56,7 +60,7 @@ class AIQASystem:
         try:
             # 核心改动：调用本地 ds-7b 模型
             response = self.client.chat.completions.create(
-                model="ds-7b:latest",  #
+              model="deepseek-chat",  #
                 messages=[
                     {"role": "system", "content": "你是小红星，一个活泼有趣的红色文化讲解AI，专门和小学生聊天。"},
                     {"role": "user", "content": prompt}
