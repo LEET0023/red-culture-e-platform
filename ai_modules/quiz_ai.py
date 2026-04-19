@@ -1,16 +1,21 @@
+import os
 from openai import OpenAI
 from typing import List, Dict, Any
 import streamlit as st
 
 
+
 class AIQuizExplainer:
     """AI题目解析器 - 活泼生动风格（已适配本地 DeepSeek）"""
 
-    def __init__(self, api_key: str = None):
-        # 核心改动：连接你本地部署的 DeepSeek
+def __init__(self, api_key: str = None):
+        # 这里的名字要和 Secrets 里的 DEEPSEEK_API_KEY 一致
+        final_api_key = os.getenv("DEEPSEEK_API_KEY") or api_key or "sk-xxx"
+        final_base_url = os.getenv("DEEPSEEK_BASE_URL") or "https://api.deepseek.com"
+
         self.client = OpenAI(
-            base_url='http://localhost:11434/v1/',
-            api_key='ollama',  # 本地调用随便填
+            base_url=final_base_url,
+            api_key=final_api_key,
         )
 
     def explain_answer(self, question: str, user_answer: str, correct_answer: str,
@@ -50,7 +55,7 @@ class AIQuizExplainer:
         try:
             # 核心改动：调用本地 ds-7b 模型
             response = self.client.chat.completions.create(
-                model="ds-7b:latest",
+               model="deepseek-chat",
                 messages=[
                     {"role": "system", "content": "你是一个活泼有趣的小学老师，专门讲解红色文化故事。"},
                     {"role": "user", "content": prompt}
