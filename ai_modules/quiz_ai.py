@@ -10,7 +10,7 @@ class AIQuizExplainer:
 
     def __init__(self, api_key: str = None):
         # 这里的名字要和 Secrets 里的 DEEPSEEK_API_KEY 一致
-        final_api_key = os.getenv("DEEPSEEK_API_KEY") or api_key or "sk-xxx"
+        final_api_key = os.getenv("DEEPSEEK_API_KEY") or api_key or "sk-fae59c4e0bc9488999e6449881f23a6c"
         final_base_url = os.getenv("DEEPSEEK_BASE_URL") or "https://api.deepseek.com"
 
         self.client = OpenAI(
