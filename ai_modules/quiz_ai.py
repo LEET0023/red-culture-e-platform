@@ -8,7 +8,7 @@ import streamlit as st
 class AIQuizExplainer:
     """AI题目解析器 - 活泼生动风格（已适配本地 DeepSeek）"""
 
-def __init__(self, api_key: str = None):
+    def __init__(self, api_key: str = None):
         # 这里的名字要和 Secrets 里的 DEEPSEEK_API_KEY 一致
         final_api_key = os.getenv("DEEPSEEK_API_KEY") or api_key or "sk-xxx"
         final_base_url = os.getenv("DEEPSEEK_BASE_URL") or "https://api.deepseek.com"
