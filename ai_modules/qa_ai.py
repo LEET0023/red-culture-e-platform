@@ -3,22 +3,21 @@ from typing import List, Dict, Any
 import streamlit as st
 from openai import OpenAI
 
-# 确保能找到你的知识库模块，如果还没写好，这里会创建一个空的防止报错
+# 确保能找到你的知识库模块
 try:
     from knowledge_base.rag_retriever import RedCultureRAG
 except ImportError:
     class RedCultureRAG:
         def search(self, question, top_k=2):
-            return []  # 暂时返回空列表，后续你写完 rag_retriever.py 就会自动替换
+            return []  # 暂时返回空列表
 
 
 class AIQASystem:
-    """AI智能问答系统 - 已适配本地 DeepSeek (Ollama)"""
+    """AI智能问答系统 - 已适配 DeepSeek 官方 API"""
 
     def __init__(self, api_key: str = None):
-        # 1. 优先从环境变量获取（Streamlit Secrets 会自动注入环境变量）
-        # 如果没有环境变量，则使用传入的参数或默认值
-        final_api_key = os.getenv("DEEPSEEK_API_KEY") or api_key or "sk-fae59c4e0bc9488999e6449881f23a6c"
+        # 1. 严格从环境变量或参数获取，彻底删掉 hardcode 的旧 Key
+        final_api_key = os.getenv("DEEPSEEK_API_KEY") or api_key
         final_base_url = os.getenv("DEEPSEEK_BASE_URL") or "https://api.deepseek.com"
 
         self.client = OpenAI(
@@ -29,7 +28,12 @@ class AIQASystem:
         self.conversation_history: List[Dict] = []
 
     def ask(self, question: str, context: str = "") -> str:
-        """回答问题，使用本地 RAG 增强"""
+        """回答问题，使用 RAG 增强"""
+        
+        # 检查 Key 是否成功加载
+        if not self.client.api_key:
+            return "⚠️ 小红星后台配置有点小状况（API Key缺失），请联系管理员检查 Secrets 配置哦！"
+
         # 1. 检索本地知识库
         relevant_info = self.rag.search(question, top_k=2)
 
@@ -58,9 +62,9 @@ class AIQASystem:
         """
 
         try:
-            # 核心改动：调用本地 ds-7b 模型
+            # 调用 DeepSeek 官方模型
             response = self.client.chat.completions.create(
-              model="deepseek-chat",  #
+                model="deepseek-chat",
                 messages=[
                     {"role": "system", "content": "你是小红星，一个活泼有趣的红色文化讲解AI，专门和小学生聊天。"},
                     {"role": "user", "content": prompt}
@@ -78,9 +82,10 @@ class AIQASystem:
             })
 
             return answer
+            
         except Exception as e:
-            # 如果本地模型没开启或报错，进入备用回答
-            print(f"Error calling local AI: {e}")
+            # 如果报错，直接在 Streamlit 页面显示具体错误原因（方便你排查是否余额不足或网络问题）
+            st.error(f"❌ 小红星刚才打了个盹（报错详情）：{e}")
             return self._fallback_answer(question, relevant_info)
 
     def _fallback_answer(self, question: str, relevant_info: List) -> str:
