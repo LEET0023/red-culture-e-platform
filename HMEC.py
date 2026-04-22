@@ -2,23 +2,21 @@ import os
 import streamlit as st
 import pandas as pd
 
-# 导入AI模块 (请确保这些文件在你的项目根目录下的 ai_modules 文件夹中)
+# 导入AI模块
 from ai_modules.quiz_ai import AIQuizExplainer
 from ai_modules.qa_ai import AIQASystem
 from ai_modules.adaptive_test import AdaptiveTestGenerator
 from ai_modules.badge_system import BadgeSystem
 
-# =========================
 # 页面设置
-# =========================
+
 st.set_page_config(
     page_title="“红脉E传”——陈毅旧居红色文化英语传播平台",
     page_icon="🏛️",
     layout="wide"
 )
-# ===# 路径适配逻辑
-# ======================
-# =========================
+# 路径适配逻辑
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -62,11 +60,7 @@ SECTION_IMAGES = {
     SECTIONS[4]: [IMAGE_PATHS["oxhide_bed"]],
 }
 
-# 后续的 Streamlit UI 逻辑代码...
-
-# =========================
 # 页面样式
-# =========================
 st.markdown("""
 <style>
 html, body, [class*="css"] {
@@ -163,9 +157,7 @@ html, body, [class*="css"] {
 </style>
 """, unsafe_allow_html=True)
 
-# =========================
 # Session 初始化
-# =========================
 defaults = {
     "current_page": "home",
     "section": None,
@@ -195,7 +187,6 @@ ai_modules = init_ai_modules()
 if "user_id" not in st.session_state:
     import uuid
     st.session_state.user_id = str(uuid.uuid4())[:8]
-# ========================================
 
 # =========================
 # 示例数据（只保留小学层）
@@ -395,11 +386,9 @@ CONTENT = {
     }
 }
 
+
 # =========================
-# 工具函数
-# =========================
-# =========================
-# 小红星 AI 助手逻辑
+#  AI 
 # =========================
 def render_ai_sidebar():
     with st.sidebar:
@@ -420,13 +409,11 @@ def render_ai_sidebar():
 
         # 聊天输入框
         if prompt := st.chat_input("输入你的问题..."):
-            # 1. 记录并显示用户问题
             st.session_state.messages.append({"role": "user", "content": prompt})
             with chat_container:
                 with st.chat_message("user"):
                     st.markdown(prompt)
 
-            # 2. 调用你已经初始化好的 qa_system (DeepSeek 本地模型)
             with chat_container:
                 with st.chat_message("assistant"):
                     with st.spinner("小红星思考中..."):
@@ -438,10 +425,8 @@ def render_ai_sidebar():
                         )
                         st.markdown(answer)
 
-            # 3. 记录 AI 的回答
             st.session_state.messages.append({"role": "assistant", "content": answer})
 
-            # 4. 触发小互动：提问质量评分
             score = ai_modules["qa_system"].get_question_quality_score(prompt)
             if score >= 15:
                 st.toast(f"好提问！徽章积分 +{score} 🎖️")
@@ -765,10 +750,7 @@ def render_level():
 
     render_contact_footer()
 
-# =========================
-# 路由
-# =========================
-# 关键：先渲染侧边栏 AI，再渲染主页面内容
+
 render_ai_sidebar()
 if st.session_state.current_page == "home":
     render_home()
