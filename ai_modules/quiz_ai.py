@@ -4,14 +4,12 @@ from typing import List, Dict, Any
 import streamlit as st
 
 class AIQuizExplainer:
-    """AI题目解析器 - 活泼生动风格（已适配 DeepSeek 官方 API）"""
 
     def __init__(self, api_key: str = None):
         # 1. 严格从 Secrets 获取，删掉 hardcode 的 sk-xxx
         final_api_key = os.getenv("DEEPSEEK_API_KEY") or api_key
         final_base_url = os.getenv("DEEPSEEK_BASE_URL") or "https://api.deepseek.com"
 
-        # 2. 初始化客户端
         self.client = OpenAI(
             base_url=final_base_url,
             api_key=final_api_key,
