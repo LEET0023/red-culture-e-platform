@@ -218,11 +218,12 @@ def init_ai_modules():
         "qa_system": AIQASystem(),
         # 如果 AdaptiveTestGenerator 和 BadgeSystem 还没写好，可以先注释掉或保持原样
         "adaptive_test": AdaptiveTestGenerator(),
-        "badge_system": BadgeSystem(),
-        "audio_ai": AIAudioEvaluator()
+        "badge_system": BadgeSystem()
     }
 
 ai_modules = init_ai_modules()
+
+ai_modules["audio_ai"] = AIAudioEvaluator()
 
 # 添加用户ID（用于徽章系统）
 if "user_id" not in st.session_state:
