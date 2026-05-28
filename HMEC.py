@@ -633,7 +633,7 @@ def render_checkin_task(task_tuple, section, level):
     st.markdown(f"**📢 跟我读：** *{en_text}*")
     st.markdown('</div>', unsafe_allow_html=True)
 
-    target_sentence = en_text.split("say:")[-1].strip() if "say:" in en_text else en_text
+    target_sentence = en_text.split("say: ")[-1].strip() if "say: " in en_text else en_text
 
     # 1. 使用你提供的 mic_recorder 组件
     audio = mic_recorder(
