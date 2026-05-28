@@ -18,7 +18,6 @@ class AIAudioEvaluator:
         if not audio_bytes:
             return 0, "未检测到有效的录音数据。"
 
-        
         # 目前做前端交互呈现，先提供一组好看的模拟数据
         score = 92
         feedback = "发音非常标准，语调自然，整体匹配度极高！继续保持！"
