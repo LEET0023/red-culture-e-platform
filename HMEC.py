@@ -7,6 +7,7 @@ from ai_modules.quiz_ai import AIQuizExplainer
 from ai_modules.qa_ai import AIQASystem
 from ai_modules.adaptive_test import AdaptiveTestGenerator
 from ai_modules.badge_system import BadgeSystem
+from ai_modules.audio_ai import AIAudioEvaluator
 
 # 页面设置
 
@@ -178,7 +179,8 @@ def init_ai_modules():
         "qa_system": AIQASystem(),
         # 如果 AdaptiveTestGenerator 和 BadgeSystem 还没写好，可以先注释掉或保持原样
         "adaptive_test": AdaptiveTestGenerator(),
-        "badge_system": BadgeSystem()
+        "badge_system": BadgeSystem(),
+        "audio_ai": AIAudioEvaluator()
     }
 
 ai_modules = init_ai_modules()
@@ -620,13 +622,57 @@ def render_platform_task(task, section, level):
                     user_id, task['题目_cn'], choice, task['答案'], section
                 )
 
-def render_checkin_task(task_tuple):
+def render_checkin_task(task_tuple, section, level):  # 👈 传入section和level用于Key绑定和徽章系统
     cn_text, en_text = task_tuple
     section_header("打卡任务 / Check-in Task")
+    
+    # 提示框展示跟读目标
     st.markdown('<div class="notice-box">', unsafe_allow_html=True)
-    st.markdown(cn_text)
-    st.markdown(en_text)
+    st.markdown(f"**🎨 任务目标：** {cn_text}")
+    st.markdown(f"**📢 跟我读：** *{en_text}*")
     st.markdown('</div>', unsafe_allow_html=True)
+
+    # 提取出需要跟读的纯英文文本（去掉前缀提示语，方便AI精准比对）
+    # 假设你的 en_text 格式是 "Please say: This old house..."，我们要提取出后面的句子
+    target_sentence = en_text.split("say:")[-1].strip() if "say:" in en_text else en_text
+
+    # 👈 新增：Streamlit 网页录音组件
+    audio_file = st.audio_input("点击红色按钮开始录音，用英语大声读出上面的句子吧！", key=f"{section}_{level}_audio")
+
+    if audio_file is not None:
+        st.audio(audio_file, format="audio/wav")
+        
+        # 提交评测按钮
+        if st.button("🚀 提交语音打卡", key=f"{section}_{level}_audio_submit", use_container_width=True):
+            with st.spinner("小红星正在聆听并评分中..."):
+                try:
+                    # 读取录入的音频二进制数据
+                    audio_bytes = audio_file.read()
+                    
+                    # 调用你之前写好的 audio_ai 模块进行发音评估
+                    # 传入参数通常为：录音数据、目标文本
+                    score, feedback = ai_modules["audio_ai"].evaluate_pronunciation(audio_bytes, target_sentence)
+                    
+                    st.markdown("### 📊 评测结果 / Assessment")
+                    
+                    # 设定及格线（例如70分）
+                    if score >= 70:
+                        st.balloons()
+                        st.success(f"🎉 打卡成功！发音得分：{score} / 100")
+                        st.info(f"💡 语音评语：{feedback}")
+                        
+                        # 联动徽章系统发放奖励
+                        user_id = st.session_state.user_id
+                        ai_modules["badge_system"].record_answer(
+                            user_id, is_correct=True, question=f"语音跟读：{target_sentence}", section=section
+                        )
+                        st.toast(f"发音太棒了！徽章积分 +20 🎖️")
+                    else:
+                        st.error(f" Let's try again! 发音得分：{score} / 100")
+                        st.warning(f"💡 小红星贴士：{feedback}")
+                        
+                except Exception as e:
+                    st.error(f"语音评测出错，请检查接口或网络设置：{e}")
 
 # =========================
 # 页面
@@ -746,7 +792,7 @@ def render_level():
         render_platform_task(data["平台任务 / Platform Task"], section, level)
 
     if "打卡任务 / Check-in Task" in data:
-        render_checkin_task(data["打卡任务 / Check-in Task"])
+        render_checkin_task(data["打卡任务 / Check-in Task"], section, level)
 
     render_contact_footer()
 
