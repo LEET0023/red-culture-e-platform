@@ -223,7 +223,7 @@ def init_ai_modules():
 
 ai_modules = init_ai_modules()
 
-ai_modules["audio_ai"] = AIAudioEvaluator()
+audio_evaluator = AIAudioEvaluator()
 
 # 添加用户ID（用于徽章系统）
 if "user_id" not in st.session_state:
@@ -690,7 +690,7 @@ def render_checkin_task(task_tuple, section, level):
         with st.spinner("正在分析你的发音..."):
             try:
                 # 调用我们在 audio_ai.py 里写好的类方法
-                score, feedback = ai_modules["audio_ai"].evaluate_pronunciation(audio_bytes, target_sentence)
+                score, feedback = audio_evaluator.evaluate_pronunciation(audio_bytes, target_sentence)
                 
                 st.markdown("### 📊 评测结果 / Assessment")
                 if score >= 70:
