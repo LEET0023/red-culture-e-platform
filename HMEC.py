@@ -18,7 +18,6 @@ class AIAudioEvaluator:
         if not audio_bytes:
             return 0, "未检测到有效的录音数据。"
 
-        # ========== 💡 核心：国赛级动态模糊评测算法 ==========
         import random
         
         # 1. 计算用户录音的字节大小（KB）
