@@ -682,7 +682,7 @@ def render_platform_task(task, section, level):
                 with st.expander("🎯 小红星解析 / Explanation", expanded=True):
                     st.info(explanation)
             else:
-                st.error(f"✗ 回报有误 / Incorrect. 正确答案是：{task['答案']}")
+                st.error(f"✗ 回答有误 / Incorrect. 正确答案是：{task['答案']}")
 
                 explanation = ai_modules["quiz_explainer"].explain_answer(
                     question=task['题目_cn'],
