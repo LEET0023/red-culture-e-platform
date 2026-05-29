@@ -670,7 +670,7 @@ def render_platform_task(task, section, level):
             if is_correct:
                 st.session_state.stat_tasks_correct += 1
                 st.balloons()
-                st.success("✓ 回报正确 / Correct!")
+                st.success("✓ 回答正确 / Correct!")
 
                 explanation = ai_modules["quiz_explainer"].explain_answer(
                     question=task['题目_cn'],
