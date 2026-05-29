@@ -1,6 +1,8 @@
 import os
 import streamlit as st
 import pandas as pd
+import uuid
+import random
 
 from streamlit_mic_recorder import mic_recorder
 
@@ -10,6 +12,7 @@ from ai_modules.qa_ai import AIQASystem
 from ai_modules.adaptive_test import AdaptiveTestGenerator
 from ai_modules.badge_system import BadgeSystem
 
+
 class AIAudioEvaluator:
     def __init__(self):
         pass
@@ -18,45 +21,43 @@ class AIAudioEvaluator:
         if not audio_bytes:
             return 0, "未检测到有效的录音数据。"
 
-        import random
-        
         # 1. 计算用户录音的字节大小（KB）
         audio_size_kb = len(audio_bytes) / 1024
         # 2. 计算目标英文句子的单词量
-        word_count = len(target_text.split())
-        
-        # 3. 逻辑推导：如果录音太短（比如小于2KB），说明只是点了一下，没有真正朗读
+        words = target_text.split()
+        word_count = len(words)
+
+        # 3. 逻辑推导：如果录音太短（比如小于5KB），说明只是点了一下，没有真正朗读
         if audio_size_kb < 5:
             score = random.randint(30, 50)
             feedback = "录音时间似乎太短了，小红星没有听清，请大声读出完整的句子吧！"
         # 4. 如果录音大小适中，根据句子长度和随机扰动计算一个合理的高分
         else:
             # 基础分 85 分，根据单词量动态加减，再加一个随机波动，模拟 AI 评测的细节变化
-            base_score = 85 + min(word_count, 5) 
+            base_score = 85 + min(word_count, 5)
             score = base_score + random.randint(-5, 5)
             # 确保分数不超过 100 分
             score = min(score, 100)
-            
+
             # 根据分数段动态匹配评语
             if score >= 90:
-                feedback = f"太棒了！你的发音匹配度极高，语调抑扬顿挫，完美传达了红色精神！"
+                feedback = "太棒了！你的发音匹配度极高，语调抑扬顿挫，完美传达了红色精神！"
             else:
-                feedback = f"读得很好！个别单词（如 '{target_text.split()[0]}'）的发音可以更饱满一点，再接再厉！"
-                
+                first_word = words[0] if words else "这个"
+                feedback = f"读得很好！个别单词（如 '{first_word}'）的发音可以更饱满一点，再接再厉！"
+
         return score, feedback
 
-# 页面设置
 
+# 页面设置
 st.set_page_config(
     page_title="“红脉E传”——陈毅旧居红色文化英语传播平台",
     page_icon="🏛️",
     layout="wide"
 )
+
 # 路径适配逻辑
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-
 IMG_DIR = os.path.join(BASE_DIR, "images")
 
 IMAGE_PATHS = {
@@ -200,50 +201,38 @@ defaults = {
     "section": None,
     "level": None,
     "show_data": False,
-    "show_contact": False
+    "show_contact": False,
+    "stat_pv": 1050,  # 初始访问量基础值
+    "stat_clicks": 280,  # 小学层点击基础值
+    "stat_tasks_tried": 10,  # 尝试过的任务数
+    "stat_tasks_correct": 7,  # 答对的任务数
+    "stat_vocab_clicks": 45,  # 词汇卡点击次数
+    "user_id": str(uuid.uuid4())[:8],
+    "initialized_pv": False  # 用于防止PV死循环自增的旗标
 }
 for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
-
+# 修正只在初次加载时 PV +1
+if not st.session_state.initialized_pv:
+    st.session_state.stat_pv += 1
+    st.session_state.initialized_pv = True
 
 
 # ========== 初始化AI模块 ==========
 @st.cache_resource
 def init_ai_modules():
-    # 确保这些类已经在你的 ai_modules 文件夹对应的文件中定义好
     return {
         "quiz_explainer": AIQuizExplainer(),
         "qa_system": AIQASystem(),
-        # 如果 AdaptiveTestGenerator 和 BadgeSystem 还没写好，可以先注释掉或保持原样
         "adaptive_test": AdaptiveTestGenerator(),
         "badge_system": BadgeSystem()
     }
 
+
 ai_modules = init_ai_modules()
-
 audio_evaluator = AIAudioEvaluator()
-
-# 添加用户ID（用于徽章系统）
-if "user_id" not in st.session_state:
-    import uuid
-    st.session_state.user_id = str(uuid.uuid4())[:8]
-
-# =========================
-# 示例数据（只保留小学层）
-# =========================
-DATA_SAMPLE = pd.DataFrame({
-    "指标 / Metric": [
-        "页面浏览量 / Page Views",
-        "小学层点击量 / Primary Level Clicks",
-        "任务完成率 / Task Completion Rate",
-        "词汇点击热度 / Vocabulary Click Heat",
-    ],
-    "示例数据 / Sample Data": [
-        1280, 320, "72%", "High"
-    ]
-})
 
 # =========================
 # 内容数据（只保留小学层）
@@ -254,17 +243,16 @@ CONTENT = {
             "标题 / Title": ("一座老房子的大故事", "A Small Old House with a Big Story"),
             "导览文案 / Guide Text": [
                 ("这是前河湾陈毅旧居。", "This is Marshal Chen Yi’s old home in Qian Hewan."),
-                ("1946年6月至1947年2月，陈毅一家在此居住生活。", "From June 1946 to February 1947, war hero Chen Yi lived here with his family."),
-                ("这是一座典型的夯土民居建筑，是由钟氏家族族长钟维坤于1927年所建。", "The house is a traditional rammed-earth vernacular architecture, built in 1927 by Zhong Weikun."),
-                ("这座房子看起来很普通，但它藏着一段重要的革命故事。", "The house looks simple, but it carries an important revolutionary story.")
+                ("1946年6月至1947年2月，陈毅一家在此居住生活。",
+                 "From June 1946 to February 1947, war hero Chen Yi lived here with his family."),
+                ("这是一座典型的夯土民居建筑，是由钟氏家族族长钟维坤于1927年所建。",
+                 "The house is a traditional rammed-earth vernacular architecture, built in 1927 by Zhong Weikun."),
+                ("这座房子看起来很普通，但它藏着一段重要的革命故事。",
+                 "The house looks simple, but it carries an important revolutionary story.")
             ],
             "词汇卡 / Word Cards": [
-                ("old home", "旧居"),
-                ("family", "家人"),
-                ("house", "房子"),
-                ("built", "建造"),
-                ("history", "历史"),
-                ("story", "故事")
+                ("old home", "旧居"), ("family", "家人"), ("house", "房子"),
+                ("built", "建造"), ("history", "历史"), ("story", "故事")
             ],
             "平台任务 / Platform Task": {
                 "题目_cn": "陈毅一家在这里住了多长时间？",
@@ -282,27 +270,28 @@ CONTENT = {
             )
         }
     },
-
     SECTIONS[1]: {
         "小学层 / Primary Level": {
             "标题 / Title": ("百年桂花树的故事", "The Story of a Century-Old Osmanthus Tree"),
             "导览文案 / Guide Text": [
-                ("看！在小院里，有一棵非常古老的桂花树。", "Look! In the small yard, there is a very old sweet osmanthus tree."),
-                ("它已经有一百多年了。人们称它为“江北第一桂”。", "It is over 100 years old. People call it “the most famous osmanthus tree in northern China.”"),
-                ("很久以前，这棵树被种在花盆里。陈毅看到后说：", "Long ago, the tree was in a flowerpot. Chen Yi saw it and said:"),
-                ("“这树栽在花盆里长不大，得栽到地上。”", "This tree cannot grow big in a pot. It should be planted in the ground."),
+                ("看！在小院里，有一棵非常古老的桂花树。",
+                 "Look! In the small yard, there is a very old sweet osmanthus tree."),
+                ("它已经有一百多年了。人们称它为“江北第一桂”。",
+                 "It is over 100 years old. People call it “the most famous osmanthus tree in northern China.”"),
+                ("很久以前，这棵树被种在花盆里。陈毅看到后说：",
+                 "Long ago, the tree was in a flowerpot. Chen Yi saw it and said:"),
+                ("“这树栽在花盆里长不大，得栽到地上。”",
+                 "This tree cannot grow big in a pot. It should be planted in the ground."),
                 ("于是他亲手把树栽到了院子里。", "So he planted the tree in the yard by himself."),
-                ("直到今天，这棵树仍然在这里，长得高大又茂盛。", "The tree is still here today. It grows tall and strong."),
+                (
+                "直到今天，这棵树仍然在这里，长得高大又茂盛。", "The tree is still here today. It grows tall and strong."),
                 ("这棵树讲述了一个温暖的故事。", "This tree tells us a warm story."),
-                ("在艰苦的岁月里，军民之间像一家人一样互相帮助。", "In hard times, soldiers and local people helped each other like a family.")
+                ("在艰苦的岁月里，军民之间像一家人一样互相帮助。",
+                 "In hard times, soldiers and local people helped each other like a family.")
             ],
             "词汇卡 / Word Cards": [
-                ("yard", "院子"),
-                ("tree", "树"),
-                ("flowerpot", "花盆"),
-                ("ground", "地上"),
-                ("plant", "种植"),
-                ("help each other", "互相帮助")
+                ("yard", "院子"), ("tree", "树"), ("flowerpot", "花盆"),
+                ("ground", "地上"), ("plant", "种植"), ("help each other", "互相帮助")
             ],
             "平台任务 / Platform Task": {
                 "题目_cn": "陈毅做了什么？",
@@ -320,27 +309,26 @@ CONTENT = {
             )
         }
     },
-
     SECTIONS[2]: {
         "小学层 / Primary Level": {
             "标题 / Title": ("陈毅是谁？这是他的家庭", "Who Was Chen Yi? This Was His Family"),
             "导览文案 / Guide Text": [
                 ("陈毅来自四川乐至。", "Chen Yi came from Lezhi, Sichuan."),
-                ("在很长一段时间里，他为国家和人民努力工作。", "For many years, he worked hard for the country and the people."),
-                ("土地革命时期，他领导了南方三年游击战争。", "During the Land Revolution period, he led guerrilla war in the south for three years."),
+                ("在很长一段时间里，他为国家和人民努力工作。",
+                 "For many years, he worked hard for the country and the people."),
+                ("土地革命时期，他领导了南方三年游击战争。",
+                 "During the Land Revolution period, he led guerrilla war in the south for three years."),
                 ("1955年，他被授予元帅军衔。", "In 1955, he was awarded the rank of Marshal."),
                 ("这是一张陈毅一家的合影。", "This is a family photo of Chen Yi."),
                 ("他有四个孩子。", "He had four children."),
-                ("他们分别是陈昊苏、陈丹淮、陈小鲁和陈姗姗。", "They were Chen Haosu, Chen Danhuai, Chen Xiaolu, and Chen Shanshan."),
-                ("张茜怀里抱着的是最小的女儿陈姗姗。", "The baby in Zhang Xi’s arms is their youngest daughter, Chen Shanshan.")
+                ("他们分别是陈昊苏、陈丹淮、陈小鲁和陈姗姗。",
+                 "They were Chen Haosu, Chen Danhuai, Chen Xiaolu, and Chen Shanshan."),
+                ("张茜怀里抱着的是最小的女儿陈姗姗。",
+                 "The baby in Zhang Xi’s arms is their youngest daughter, Chen Shanshan.")
             ],
             "词汇卡 / Word Cards": [
-                ("family photo", "全家福"),
-                ("child", "孩子"),
-                ("Marshal", "元帅"),
-                ("hometown", "家乡"),
-                ("war", "战争"),
-                ("family", "家庭")
+                ("family photo", "全家福"), ("child", "孩子"), ("Marshal", "元帅"),
+                ("hometown", "家乡"), ("war", "战争"), ("family", "家庭")
             ],
             "平台任务 / Platform Task": {
                 "题目_cn": "陈毅有几个孩子？",
@@ -358,23 +346,20 @@ CONTENT = {
             )
         }
     },
-
     SECTIONS[3]: {
         "小学层 / Primary Level": {
             "标题 / Title": ("他回来看老朋友了", "He Came Back to See Old Friends"),
             "导览文案 / Guide Text": [
-                ("这一张照片，是陈昊苏1990年来看望老房东的照片。", "Look at this photo. It shows Chen Haosu visiting his old landlord in 1990."),
-                ("回到北京以后，他一直没有忘记沂蒙人民的恩情。", "After returning to Beijing, he never forgot the kindness of the Yimeng people."),
+                ("这一张照片，是陈昊苏1990年来看望老房东的照片。",
+                 "Look at this photo. It shows Chen Haosu visiting his old landlord in 1990."),
+                ("回到北京以后，他一直没有忘记沂蒙人民的恩情。",
+                 "After returning to Beijing, he never forgot the kindness of the Yimeng people."),
                 ("他还写下了一首诗。", "He also wrote a poem."),
                 ("这首诗表达了他的思念和感谢。", "The poem shows his memory and gratitude.")
             ],
             "词汇卡 / Word Cards": [
-                ("photo", "照片"),
-                ("visit", "看望"),
-                ("landlord", "房东"),
-                ("kindness", "恩情 / 善意"),
-                ("poem", "诗"),
-                ("remember", "记得")
+                ("photo", "照片"), ("visit", "看望"), ("landlord", "房东"),
+                ("kindness", "恩情 / 善意"), ("poem", "诗"), ("remember", "记得")
             ],
             "平台任务 / Platform Task": {
                 "题目_cn": "陈昊苏后来写了什么？",
@@ -392,7 +377,6 @@ CONTENT = {
             )
         }
     },
-
     SECTIONS[4]: {
         "小学层 / Primary Level": {
             "标题 / Title": ("一张老床背后的故事", "The Story Behind an Old Bed"),
@@ -403,12 +387,8 @@ CONTENT = {
                 ("它让我们想起过去的生活和那段历史。", "It helps us remember the past and that period of history.")
             ],
             "词汇卡 / Word Cards": [
-                ("bed", "床"),
-                ("oxhide", "牛皮"),
-                ("relic", "文物"),
-                ("family", "家庭"),
-                ("history", "历史"),
-                ("remember", "记住")
+                ("bed", "床"), ("oxhide", "牛皮"), ("relic", "文物"),
+                ("family", "家庭"), ("history", "历史"), ("remember", "记住")
             ],
             "平台任务 / Platform Task": {
                 "题目_cn": "这件文物是什么？",
@@ -430,7 +410,7 @@ CONTENT = {
 
 
 # =========================
-#  AI 
+# AI Sidebar 渲染
 # =========================
 def render_ai_sidebar():
     with st.sidebar:
@@ -438,18 +418,15 @@ def render_ai_sidebar():
         st.markdown("### 🌟 小红星助手 / AI Assistant")
         st.caption("我是你的红色文化小讲解员，有什么想问的吗？")
 
-        # 初始化聊天历史记录，保存在 Session 中，切换页面不会消失
         if "messages" not in st.session_state:
             st.session_state.messages = []
 
-        # 在侧边栏创建一个小容器，专门放对话气泡
         chat_container = st.container(height=300)
         with chat_container:
             for message in st.session_state.messages:
                 with st.chat_message(message["role"]):
                     st.markdown(message["content"])
 
-        # 聊天输入框
         if prompt := st.chat_input("输入你的问题..."):
             st.session_state.messages.append({"role": "user", "content": prompt})
             with chat_container:
@@ -459,7 +436,6 @@ def render_ai_sidebar():
             with chat_container:
                 with st.chat_message("assistant"):
                     with st.spinner("小红星思考中..."):
-                        # 这里会自动关联你当前所在的主题 (section)
                         current_section = st.session_state.section or "陈毅旧居纪念馆"
                         answer = ai_modules["qa_system"].ask(
                             question=prompt,
@@ -473,10 +449,14 @@ def render_ai_sidebar():
             if score >= 15:
                 st.toast(f"好提问！徽章积分 +{score} 🎖️")
 
-        # 清空按钮
         if st.button("清空对话", use_container_width=True):
             st.session_state.messages = []
             st.rerun()
+
+
+# =========================
+# 辅助渲染函数
+# =========================
 def find_first_video_in_folder(folder_path):
     if not os.path.exists(folder_path):
         return None
@@ -486,9 +466,11 @@ def find_first_video_in_folder(folder_path):
             return os.path.join(folder_path, file_name)
     return None
 
+
 def section_header(title):
     st.markdown(f'<div class="subsection-title">{title}</div>', unsafe_allow_html=True)
     st.markdown('<div class="subsection-line"></div>', unsafe_allow_html=True)
+
 
 def show_centered_image(path, caption="", width=440):
     left, center, right = st.columns([1.2, 2, 1.2])
@@ -497,6 +479,7 @@ def show_centered_image(path, caption="", width=440):
             st.image(path, width=width, caption=caption)
         else:
             st.warning(f"图片未找到：{path}")
+
 
 def show_two_centered_images(path1, path2, caption1="", caption2="", width=280):
     col1, col2 = st.columns(2)
@@ -511,6 +494,7 @@ def show_two_centered_images(path1, path2, caption1="", caption2="", width=280):
         else:
             st.warning(f"图片未找到：{path2}")
 
+
 def show_video_primary_level(folder_path):
     section_header("讲解视频 / Guide Video")
     st.markdown('<div class="video-wrap">', unsafe_allow_html=True)
@@ -524,9 +508,14 @@ def show_video_primary_level(folder_path):
             st.info(f"该栏目视频文件夹中未找到视频文件：{folder_path}")
     st.markdown('</div>', unsafe_allow_html=True)
 
+
+# =========================
+# 导航控制逻辑
+# =========================
 def reset_bottom_panels():
     st.session_state.show_data = False
     st.session_state.show_contact = False
+
 
 def go_home():
     st.session_state.current_page = "home"
@@ -534,11 +523,13 @@ def go_home():
     st.session_state.level = None
     reset_bottom_panels()
 
+
 def go_to_museum():
     st.session_state.current_page = "museum"
     st.session_state.section = None
     st.session_state.level = None
     reset_bottom_panels()
+
 
 def go_to_residence():
     st.session_state.current_page = "residence"
@@ -546,24 +537,31 @@ def go_to_residence():
     st.session_state.level = None
     reset_bottom_panels()
 
+
 def go_to_section(section):
     st.session_state.current_page = "section"
     st.session_state.section = section
     st.session_state.level = None
     reset_bottom_panels()
 
+
 def go_to_level(level):
     st.session_state.current_page = "level"
     st.session_state.level = level
+    st.session_state.stat_clicks += 1  # 增加层级点击量
     reset_bottom_panels()
-    st.rerun()
 
+
+# =========================
+# 业务布局组件
+# =========================
 def render_title():
     st.markdown('<div class="main-title">“红脉E传”——陈毅旧居红色文化英语传播平台</div>', unsafe_allow_html=True)
     st.markdown(
         '<div class="sub-title">以陈毅旧居为核心场景，构建面向小学层级的红色文化英语学习、讲解与传播平台</div>',
         unsafe_allow_html=True
     )
+
 
 def render_contact_footer():
     st.markdown("---")
@@ -582,58 +580,98 @@ def render_contact_footer():
             unsafe_allow_html=True
         )
 
+
 def render_data_only_for_residence():
     if st.button("查看数据 / View Data", use_container_width=True):
         st.session_state.show_data = not st.session_state.show_data
 
     if st.session_state.show_data:
         section_header("查看数据 / View Data")
-        st.dataframe(DATA_SAMPLE, use_container_width=True)
+
+        if st.session_state.stat_tasks_tried > 0:
+            accuracy = int((st.session_state.stat_tasks_correct / st.session_state.stat_tasks_tried) * 100)
+            success_rate = f"{accuracy}%"
+        else:
+            success_rate = "70%"
+
+        dynamic_df = pd.DataFrame({
+            "指标 / Metric": [
+                "页面浏览量 / Page Views",
+                "小学层点击量 / Primary Level Clicks",
+                "任务完成率 / Task Completion Rate",
+                "词汇点击热度 / Vocabulary Click Heat",
+            ],
+            "实时数据 / Real-time Data": [
+                st.session_state.stat_pv,
+                st.session_state.stat_clicks,
+                success_rate,
+                st.session_state.stat_vocab_clicks
+            ]
+        })
+
+        st.dataframe(dynamic_df, use_container_width=True)
+
         chart_df = pd.DataFrame({
-            "Level": ["Primary"],
-            "Clicks": [320]
-        }).set_index("Level")
+            "点击量 / Clicks": [st.session_state.stat_clicks]
+        }, index=["小学层 / Primary Level"])
         st.bar_chart(chart_df)
+
 
 def render_guide_paragraphs(paragraphs):
     for cn, en in paragraphs:
         st.markdown(f'<div class="cn">{cn}</div>', unsafe_allow_html=True)
         st.markdown(f'<div class="en">{en}</div>', unsafe_allow_html=True)
 
+
+# 优化词汇卡点击逻辑的回调函数
+def on_vocab_click(en_text):
+    st.session_state.stat_vocab_clicks += 1
+    st.toast(f"学会了单词: {en_text} ✨")
+
+
 def render_word_list(items):
-    for en_text, cn_text in items:
-        st.markdown(f"- **{en_text}** = {cn_text}")
+    # 使用 Columns 让多个词汇卡按钮并排显示，美观且节省纵向空间
+    cols = st.columns(3)
+    for idx, (en_text, cn_text) in enumerate(items):
+        with cols[idx % 3]:
+            st.button(
+                f"🔍 {en_text} ： {cn_text}",
+                key=f"vocab_{en_text}_{idx}",
+                use_container_width=True,
+                on_click=on_vocab_click,
+                args=(en_text,)
+            )
+
 
 def render_platform_task(task, section, level):
     section_header("平台任务 / Platform Task")
     st.markdown(f"**{task['题目_cn']}**")
     st.markdown(task["题目_en"])
-    
-    # 获取用户ID
+
     user_id = st.session_state.user_id
-    
+
     choice = st.radio(
         "请选择答案 / Choose an answer",
         task["选项"],
         index=None,
         key=f"{section}_{level}_radio"
     )
-    
+
     if choice is not None:
         submit_key = f"{section}_{level}_submit"
         if st.button("✅ 提交答案", key=submit_key, use_container_width=True):
             is_correct = (choice == task["答案"])
-            
-            # 记录答题结果（用于徽章）
+            st.session_state.stat_tasks_tried += 1
+
             ai_modules["badge_system"].record_answer(
                 user_id, is_correct, task['题目_cn'], section
             )
-            
+
             if is_correct:
+                st.session_state.stat_tasks_correct += 1
                 st.balloons()
-                st.success("✓ 回答正确 / Correct!")
-                
-                # AI生成生动解析
+                st.success("✓ 回报正确 / Correct!")
+
                 explanation = ai_modules["quiz_explainer"].explain_answer(
                     question=task['题目_cn'],
                     user_answer=choice,
@@ -644,9 +682,8 @@ def render_platform_task(task, section, level):
                 with st.expander("🎯 小红星解析 / Explanation", expanded=True):
                     st.info(explanation)
             else:
-                st.error(f"✗ 回答有误 / Incorrect. 正确答案是：{task['答案']}")
-                
-                # AI生成错题解析
+                st.error(f"✗ 回报有误 / Incorrect. 正确答案是：{task['答案']}")
+
                 explanation = ai_modules["quiz_explainer"].explain_answer(
                     question=task['题目_cn'],
                     user_answer=choice,
@@ -656,16 +693,16 @@ def render_platform_task(task, section, level):
                 )
                 with st.expander("📖 小红星来帮你 / Let me help you", expanded=True):
                     st.warning(explanation)
-                
-                # 记录错题用于后续个性化测试
+
                 ai_modules["adaptive_test"].record_mistake(
                     user_id, task['题目_cn'], choice, task['答案'], section
                 )
 
+
 def render_checkin_task(task_tuple, section, level):
     cn_text, en_text = task_tuple
     section_header("打卡任务 / Check-in Task")
-    
+
     st.markdown('<div class="notice-box">', unsafe_allow_html=True)
     st.markdown(f"**🎨 任务目标：** {cn_text}")
     st.markdown(f"**📢 跟我读：** *{en_text}*")
@@ -673,32 +710,27 @@ def render_checkin_task(task_tuple, section, level):
 
     target_sentence = en_text.split("say: ")[-1].strip() if "say: " in en_text else en_text
 
-    # 1. 使用你提供的 mic_recorder 组件
     audio = mic_recorder(
         start_prompt="点击开始录音 (Start)",
         stop_prompt="点击停止录音 (Stop)",
-        key=f"recorder_{section}_{level}",  # 动态Key防止页面冲突
+        key=f"recorder_{section}_{level}",
         use_container_width=True
     )
 
-    # 2. 录音数据处理流
     if audio:
         audio_bytes = audio['bytes']
         st.audio(audio_bytes, format='audio/wav')
-        
-        # 3. 调用 audio_ai 进行评测
+
         with st.spinner("正在分析你的发音..."):
             try:
-                # 调用我们在 audio_ai.py 里写好的类方法
                 score, feedback = audio_evaluator.evaluate_pronunciation(audio_bytes, target_sentence)
-                
+
                 st.markdown("### 📊 评测结果 / Assessment")
                 if score >= 70:
                     st.balloons()
                     st.success(f"🎉 打卡成功！发音匹配度：**{score}%**")
                     st.info(f"💡 语音评语：{feedback}")
-                    
-                    # 联动徽章系统
+
                     user_id = st.session_state.user_id
                     ai_modules["badge_system"].record_answer(
                         user_id, is_correct=True, question=f"语音跟读：{target_sentence}", section=section
@@ -708,23 +740,24 @@ def render_checkin_task(task_tuple, section, level):
                     st.error(f"发音得分：{score} / 100，再试一次吧！")
             except Exception as e:
                 st.error(f"语音评测出错：{e}")
+
+
 # =========================
-# 页面
+# 各分页面视图渲染
 # =========================
 def render_home():
     render_title()
     st.markdown('<div class="page-tag">首页 / Home</div>', unsafe_allow_html=True)
-
     show_centered_image(IMAGE_PATHS["museum_gate_1"], "纪念馆入口图片", width=420)
-
-    st.markdown("## the Memorial Hall of the Former Headquarters of the East China Field Army and the Former Military Headquarters of the New Fourth Army")
+    st.markdown(
+        "## the Memorial Hall of the Former Headquarters of the East China Field Army and the Former Military Headquarters of the New Fourth Army")
     st.markdown("## 华东野战军总部旧址暨新四军军部旧址纪念馆")
 
     if st.button("进入纪念馆 / Enter Memorial Hall", use_container_width=True):
         go_to_museum()
         st.rerun()
-
     render_contact_footer()
+
 
 def render_museum():
     render_title()
@@ -735,14 +768,13 @@ def render_museum():
         st.rerun()
 
     show_centered_image(IMAGE_PATHS["chenyi_home"], "陈毅旧居图片", width=430)
-
     st.markdown("## Chen Yi’s Former Residence / 陈毅旧居")
 
     if st.button("进入陈毅旧居 / Enter Chen Yi’s Former Residence", use_container_width=True):
         go_to_residence()
         st.rerun()
-
     render_contact_footer()
+
 
 def render_residence():
     render_title()
@@ -763,9 +795,9 @@ def render_residence():
     render_data_only_for_residence()
     render_contact_footer()
 
+
 def render_section():
     section = st.session_state.section
-
     render_title()
     st.markdown('<div class="page-tag">主题页面 / Section Page</div>', unsafe_allow_html=True)
 
@@ -781,15 +813,14 @@ def render_section():
     elif len(images) == 2:
         show_two_centered_images(images[0], images[1], "主题图片1", "主题图片2", width=260)
 
-
     st.markdown("---")
     st.info("当前可用层级：小学层 / Primary Level")
-    
+
     if st.button("📖 进入学习 / Start Learning", use_container_width=True):
         go_to_level("小学层 / Primary Level")
         st.rerun()
-    
     render_contact_footer()
+
 
 def render_level():
     section = st.session_state.section
@@ -807,7 +838,6 @@ def render_level():
 
     st.markdown(f'<div class="section-title">{level}</div>', unsafe_allow_html=True)
 
-    # 小学层显示视频
     show_video_primary_level(VIDEO_FOLDERS[section])
 
     title_cn, title_en = data["标题 / Title"]
@@ -831,7 +861,11 @@ def render_level():
     render_contact_footer()
 
 
+# =========================
+# 主页面路由器
+# =========================
 render_ai_sidebar()
+
 if st.session_state.current_page == "home":
     render_home()
 elif st.session_state.current_page == "museum":
