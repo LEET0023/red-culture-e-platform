@@ -852,11 +852,17 @@ def render_level():
         section_header("词汇卡 / Word Cards")
         render_word_list(data["词汇卡 / Word Cards"])
 
+
+    quiz_container = st.container()
+    checkin_container = st.container()
+
     if "平台任务 / Platform Task" in data:
-        render_platform_task(data["平台任务 / Platform Task"], section, level)
+        with quiz_container:
+            render_platform_task(data["平台任务 / Platform Task"], section, level)
 
     if "打卡任务 / Check-in Task" in data:
-        render_checkin_task(data["打卡任务 / Check-in Task"], section, level)
+        with checkin_container:
+            render_checkin_task(data["打卡任务 / Check-in Task"], section, level)
 
     render_contact_footer()
 
