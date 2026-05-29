@@ -702,7 +702,7 @@ def render_platform_task(task, section, level):
 def render_checkin_task(task_tuple, section, level):
     cn_text, en_text = task_tuple
     section_header("打卡任务 / Check-in Task")
-
+    
     st.markdown('<div class="notice-box">', unsafe_allow_html=True)
     st.markdown(f"**🎨 任务目标：** {cn_text}")
     st.markdown(f"**📢 跟我读：** *{en_text}*")
@@ -710,37 +710,56 @@ def render_checkin_task(task_tuple, section, level):
 
     target_sentence = en_text.split("say: ")[-1].strip() if "say: " in en_text else en_text
 
+    recorder_key = f"recorder_{section}_{level}"
+    # 用来记录上一次处理过的录音数据哈希，防止重复触发
+    last_audio_key = f"last_processed_audio_{section}_{level}" 
+    
     audio = mic_recorder(
         start_prompt="点击开始录音 (Start)",
         stop_prompt="点击停止录音 (Stop)",
-        key=f"recorder_{section}_{level}",
+        key=recorder_key,
         use_container_width=True
     )
 
     if audio:
         audio_bytes = audio['bytes']
         st.audio(audio_bytes, format='audio/wav')
+        
+        # 产生当前录音的唯一标识（根据字节长度和内容摘要，这里用长度+前几个字节做简易判断）
+        current_audio_id = f"{len(audio_bytes)}_{audio_bytes[:10]}"
+        
+        # 初始化对比值
+        if last_audio_key not in st.session_state:
+            st.session_state[last_audio_key] = None
 
-        with st.spinner("正在分析你的发音..."):
-            try:
-                score, feedback = audio_evaluator.evaluate_pronunciation(audio_bytes, target_sentence)
-
-                st.markdown("### 📊 评测结果 / Assessment")
-                if score >= 70:
-                    st.balloons()
-                    st.success(f"🎉 打卡成功！发音匹配度：**{score}%**")
-                    st.info(f"💡 语音评语：{feedback}")
-
-                    user_id = st.session_state.user_id
-                    ai_modules["badge_system"].record_answer(
-                        user_id, is_correct=True, question=f"语音跟读：{target_sentence}", section=section
-                    )
-                    st.toast("太棒了！口语打卡成功 🎖️")
-                else:
-                    st.error(f"发音得分：{score} / 100，再试一次吧！")
-            except Exception as e:
-                st.error(f"语音评测出错：{e}")
-
+        # ====== 【核心逻辑】：只有当当前录音和上一次处理的录音不同时，才触发 AI 评测 ======
+        if st.session_state[last_audio_key] != current_audio_id:
+            with st.spinner("正在分析你的发音..."):
+                try:
+                    score, feedback = audio_evaluator.evaluate_pronunciation(audio_bytes, target_sentence)
+                    
+                    st.markdown("### 📊 评测结果 / Assessment")
+                    if score >= 70:
+                        st.balloons()
+                        st.success(f"🎉 打卡成功！发音匹配度：**{score}%**")
+                        st.info(f"💡 语音评语：{feedback}")
+                        
+                        user_id = st.session_state.user_id
+                        ai_modules["badge_system"].record_answer(
+                            user_id, is_correct=True, question=f"语音跟读：{target_sentence}", section=section
+                        )
+                        st.toast("太棒了！口语打卡成功 🎖️")
+                    else:
+                        st.error(f"发音得分：{score} / 100，再试一次吧！")
+                    
+                    # 评测完成后，把当前的录音ID存下来，标记为“已处理”
+                    st.session_state[last_audio_key] = current_audio_id
+                    
+                except Exception as e:
+                    st.error(f"语音评测出错：{e}")
+        else:
+            # 如果点击了单词卡，页面重绘，代码走到这里发现录音没变，就只安静地展示上一次的成绩，不飘气球
+            st.success("✨ 本节录音已成功提交。你可以随时点击开始录音重新挑战高分！")
 
 # =========================
 # 各分页面视图渲染
